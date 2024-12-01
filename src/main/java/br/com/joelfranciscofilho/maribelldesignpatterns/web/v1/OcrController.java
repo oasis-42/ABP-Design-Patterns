@@ -18,18 +18,19 @@ import java.io.IOException;
 public class OcrController {
 
     private final OcrProvider ocrProvider;
-    
+    private final GrammarFixProvider grammarFixProvider;
 
-    public OcrController(OcrProvider ocrProvider) {
+    public OcrController(OcrProvider ocrProvider, GrammarFixProvider grammarFixProvider) {
         this.ocrProvider = ocrProvider;
-
+        this.grammarFixProvider = grammarFixProvider;
     }
 
     @PostMapping
     public ResponseEntity<OcrResponse> processOcr(@RequestBody @Valid OcrRequest dto) throws IOException {
         OcrResponse ocrResponse = ocrProvider.processOcr(dto.base64Image());
-    
-        return ResponseEntity.ok(new OcrResponse(ocrResponse.text(), ocrResponse.confidence()));
+        String correctedText = grammarFixProvider.tryFixGrammar(ocrResponse.text());
+
+        return ResponseEntity.ok(new OcrResponse(correctedText, ocrResponse.confidence()));
     }
 
 }
